@@ -3,6 +3,7 @@ import streamlit as st
 class LoyaltyProgram:
     def __init__(self):
         self.customers = {}
+        self.redemption_history = []
 
     def register_customer(self, customer_id, name):
         if customer_id in self.customers:
@@ -23,6 +24,12 @@ class LoyaltyProgram:
         if customer_id in self.customers:
             if self.customers[customer_id]["points"] >= points:
                 self.customers[customer_id]["points"] -= points
+                # Tambahkan ke riwayat penukaran
+                self.redemption_history.append({
+                    "customer_id": customer_id,
+                    "customer_name": self.customers[customer_id]["name"],
+                    "points_redeemed": points
+                })
                 return f"{points} poin berhasil ditukarkan oleh {self.customers[customer_id]['name']}."
             else:
                 return "Poin tidak mencukupi untuk ditukarkan."
@@ -42,6 +49,12 @@ class LoyaltyProgram:
         else:
             return "Belum ada pelanggan yang terdaftar."
 
+    def view_redemption_history(self):
+        if self.redemption_history:
+            return self.redemption_history
+        else:
+            return "Belum ada riwayat penukaran poin."
+
 # Inisialisasi program dalam session_state
 if "program" not in st.session_state:
     st.session_state.program = LoyaltyProgram()
@@ -51,7 +64,7 @@ program = st.session_state.program
 # Antarmuka Streamlit
 st.title("Sistem Loyalitas Pelanggan")
 
-menu = st.sidebar.selectbox("Menu", ["Daftar Pelanggan", "Tambah Poin", "Tukarkan Poin", "Lihat Detail Pelanggan", "List Data Pelanggan"])
+menu = st.sidebar.selectbox("Menu", ["Daftar Pelanggan", "Tambah Poin", "Tukarkan Poin", "Lihat Detail Pelanggan", "List Data Pelanggan", "Riwayat Penukaran Poin"])
 
 if menu == "Daftar Pelanggan":
     st.header("Daftar Pelanggan Baru")
@@ -111,3 +124,13 @@ elif menu == "List Data Pelanggan":
         st.write("### Data Pelanggan yang Terdaftar")
         for cid, data in customers.items():
             st.write(f"ID: {cid}, Nama: {data['name']}, Poin: {data['points']}")
+
+elif menu == "Riwayat Penukaran Poin":
+    st.header("Riwayat Penukaran Poin")
+    history = program.view_redemption_history()
+    if isinstance(history, str):
+        st.warning(history)
+    else:
+        st.write("### Riwayat Penukaran")
+        for record in history:
+            st.write(f"ID: {record['customer_id']}, Nama: {record['customer_name']}, Poin Ditukarkan: {record['points_redeemed']}")
