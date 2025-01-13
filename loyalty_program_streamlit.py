@@ -36,13 +36,22 @@ class LoyaltyProgram:
         else:
             return "Pelanggan tidak ditemukan."
 
-# Inisialisasi program
-program = LoyaltyProgram()
+    def view_all_customers(self):
+        if self.customers:
+            return self.customers
+        else:
+            return "Belum ada pelanggan yang terdaftar."
+
+# Inisialisasi program dalam session_state
+if "program" not in st.session_state:
+    st.session_state.program = LoyaltyProgram()
+
+program = st.session_state.program
 
 # Antarmuka Streamlit
 st.title("Sistem Loyalitas Pelanggan")
 
-menu = st.sidebar.selectbox("Menu", ["Daftar Pelanggan", "Tambah Poin", "Tukarkan Poin", "Lihat Detail Pelanggan"])
+menu = st.sidebar.selectbox("Menu", ["Daftar Pelanggan", "Tambah Poin", "Tukarkan Poin", "Lihat Detail Pelanggan", "List Data Pelanggan"])
 
 if menu == "Daftar Pelanggan":
     st.header("Daftar Pelanggan Baru")
@@ -79,10 +88,26 @@ elif menu == "Tukarkan Poin":
 
 elif menu == "Lihat Detail Pelanggan":
     st.header("Lihat Detail Pelanggan")
-    customer_id = st.text_input("Masukkan ID Pelanggan:")
+    customer_id = st.text_input("Masukkan ID Pelanggan (kosongkan untuk melihat semua pelanggan):")
     if st.button("Lihat"):
         if customer_id:
             result = program.view_customer(customer_id)
             st.info(result)
         else:
-            st.error("Harap masukkan ID pelanggan.")
+            customers = program.view_all_customers()
+            if isinstance(customers, str):
+                st.warning(customers)
+            else:
+                st.write("### Data Pelanggan")
+                for cid, data in customers.items():
+                    st.write(f"ID: {cid}, Nama: {data['name']}, Poin: {data['points']}")
+
+elif menu == "List Data Pelanggan":
+    st.header("List Data Pelanggan")
+    customers = program.view_all_customers()
+    if isinstance(customers, str):
+        st.warning(customers)
+    else:
+        st.write("### Data Pelanggan yang Terdaftar")
+        for cid, data in customers.items():
+            st.write(f"ID: {cid}, Nama: {data['name']}, Poin: {data['points']}")
